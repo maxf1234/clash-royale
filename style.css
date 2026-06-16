@@ -1,0 +1,124 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #1b1f2a;
+  color: #eee;
+  font-family: 'Trebuchet MS', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+#game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+}
+
+#hud {
+  width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#status {
+  font-size: 13px;
+  text-align: center;
+  color: #ffd966;
+  min-height: 18px;
+}
+
+#elixir-bar {
+  position: relative;
+  width: 100%;
+  height: 22px;
+  background: #2a2a3a;
+  border: 2px solid #6a3fa0;
+  border-radius: 11px;
+  overflow: hidden;
+}
+
+#elixir-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #b14ad6, #e85ffc);
+  transition: width 0.2s linear;
+}
+
+#elixir-text {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px #000;
+}
+
+#arena {
+  background: #3c8c3c;
+  border: 4px solid #2c2c3c;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#hand {
+  display: flex;
+  gap: 8px;
+}
+
+.card {
+  width: 84px;
+  height: 104px;
+  background: #2f3142;
+  border: 2px solid #555;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.1s, border-color 0.1s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card.selected {
+  border-color: #ffd966;
+  box-shadow: 0 0 8px #ffd966;
+}
+
+.card.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.card .icon {
+  font-size: 30px;
+}
+
+.card .name {
+  font-size: 11px;
+  text-align: center;
+}
+
+.card .cost {
+  background: #b14ad6;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
