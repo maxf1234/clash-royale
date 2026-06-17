@@ -85,7 +85,12 @@ body {
   padding: 6px;
   cursor: pointer;
   user-select: none;
+  touch-action: none;
   transition: transform 0.1s, border-color 0.1s;
+}
+
+#arena {
+  touch-action: none;
 }
 
 .card:hover {

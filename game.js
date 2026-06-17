@@ -46,6 +46,11 @@ let playerHand = [];
 let playerNext = null;
 let gameOver = false;
 
+// Drag-and-drop placement state
+let dragCardIndex = null;
+let dragPos = null; // {x, y} in canvas coordinates
+let dragValid = false;
+
 function pickRandomCard(exclude) {
   let pool = DECK.filter(c => c !== exclude);
   return pool[Math.floor(Math.random() * pool.length)];
@@ -69,25 +74,69 @@ function renderHand() {
       selectedCardIndex = selectedCardIndex === i ? null : i;
       renderHand();
     };
+    div.addEventListener('pointerdown', (e) => {
+      if (playerElixir < card.cost || gameOver) return;
+      e.preventDefault();
+      dragCardIndex = i;
+      selectedCardIndex = i;
+      updateDragPos(e);
+      renderHand();
+    });
     handEl.appendChild(div);
   });
 }
 
-canvas.addEventListener('click', (e) => {
-  if (selectedCardIndex === null || gameOver) return;
+function canvasCoords(e) {
   const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) * (W / rect.width);
-  const y = (e.clientY - rect.top) * (H / rect.height);
-  if (y < H / 2 - 20) return; // can only deploy on your own half
-  const cardKey = playerHand[selectedCardIndex];
+  return {
+    x: (e.clientX - rect.left) * (W / rect.width),
+    y: (e.clientY - rect.top) * (H / rect.height),
+  };
+}
+
+function isValidPlacement(x, y) {
+  return x >= 0 && x <= W && y >= H / 2 + 16 && y <= H;
+}
+
+function updateDragPos(e) {
+  const { x, y } = canvasCoords(e);
+  dragPos = { x: Math.max(0, Math.min(W, x)), y: Math.max(0, Math.min(H, y)) };
+  dragValid = isValidPlacement(x, y);
+}
+
+function deployCard(cardIndex, x, y) {
+  const cardKey = playerHand[cardIndex];
   const card = CARD_TYPES[cardKey];
   if (playerElixir < card.cost) return;
   playerElixir -= card.cost;
   spawnTroop('player', cardKey, x, y);
-  playerHand[selectedCardIndex] = playerNext;
+  playerHand[cardIndex] = playerNext;
   playerNext = pickRandomCard();
   selectedCardIndex = null;
   renderHand();
+}
+
+window.addEventListener('pointermove', (e) => {
+  if (dragCardIndex === null) return;
+  updateDragPos(e);
+});
+
+window.addEventListener('pointerup', (e) => {
+  if (dragCardIndex === null) return;
+  const { x, y } = canvasCoords(e);
+  if (!gameOver && isValidPlacement(x, y)) {
+    deployCard(dragCardIndex, x, y);
+  }
+  dragCardIndex = null;
+  dragPos = null;
+  renderHand();
+});
+
+canvas.addEventListener('click', (e) => {
+  if (selectedCardIndex === null || gameOver || dragCardIndex !== null) return;
+  const { x, y } = canvasCoords(e);
+  if (!isValidPlacement(x, y)) return;
+  deployCard(selectedCardIndex, x, y);
 });
 
 function spawnTroop(side, cardKey, x, y) {
@@ -290,8 +339,26 @@ function render() {
   for (const u of troops) drawTroop(u);
 
   if (selectedCardIndex !== null) {
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
-    ctx.fillRect(0, H / 2 - 6, W, H / 2 + 6);
+    ctx.fillStyle = dragCardIndex !== null
+      ? (dragValid ? 'rgba(80,220,80,0.15)' : 'rgba(220,80,80,0.15)')
+      : 'rgba(255,255,255,0.08)';
+    ctx.fillRect(0, H / 2 + 16, W, H / 2 - 16);
+  }
+
+  if (dragCardIndex !== null && dragPos) {
+    const cardKey = playerHand[dragCardIndex];
+    const def = CARD_TYPES[cardKey];
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.beginPath();
+    ctx.arc(dragPos.x, dragPos.y, def.range, 0, Math.PI * 2);
+    ctx.strokeStyle = dragValid ? 'rgba(80,220,80,0.6)' : 'rgba(220,80,80,0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.font = '28px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(def.icon, dragPos.x, dragPos.y + 9);
+    ctx.restore();
   }
 }
 
